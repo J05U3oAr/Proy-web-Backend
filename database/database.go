@@ -12,7 +12,7 @@ var DB *sql.DB
 // Init opens the SQLite database and creates tables if they don't exist
 func Init(path string) {
 	var err error
-	DB, err = sql.Open("sqlite3", path)
+	DB, err = sql.Open("sqlite", path)
 	if err != nil {
 		log.Fatalf("Failed to open database: %v", err)
 	}
