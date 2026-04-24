@@ -76,7 +76,7 @@ func main() {
 	log.Printf("   GET    /series/:id    - get one series")
 	log.Printf("   PUT    /series/:id    - update a series")
 	log.Printf("   DELETE /series/:id    - delete a series (204)")
-	log.Fatal(http.ListenAndServe(":"+port, handler))
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, handler))
 }
 
 func resolveDatabasePath() string {
