@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"series-tracker/database"
 	"series-tracker/handlers"
@@ -60,25 +61,37 @@ func main() {
 	// requests from a different origin (domain/port) than the server.
 	// We configure it here to allow the frontend (running on a different port) to call our API.
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
+		AllowedOrigins: resolveAllowedOrigins(),
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Content-Type", "Authorization"},
 	})
 
 	handler := c.Handler(mux)
 
-	port := ":8080"
-	log.Printf("🚀 Series Tracker API running on http://localhost%s", port)
-	log.Printf("📋 Endpoints:")
-	log.Printf("   GET    /series        — list all series")
-	log.Printf("   POST   /series        — create a series (201)")
-	log.Printf("   GET    /series/:id    — get one series")
-	log.Printf("   PUT    /series/:id    — update a series")
-	log.Printf("   DELETE /series/:id    — delete a series (204)")
-log.Fatal(http.ListenAndServe(port, handler))
+	port := resolvePort()
+	log.Printf("Series Tracker API running on port %s", port)
+	log.Printf("Endpoints:")
+	log.Printf("   GET    /series        - list all series")
+	log.Printf("   POST   /series        - create a series (201)")
+	log.Printf("   GET    /series/:id    - get one series")
+	log.Printf("   PUT    /series/:id    - update a series")
+	log.Printf("   DELETE /series/:id    - delete a series (204)")
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
 
 func resolveDatabasePath() string {
+	if customPath := strings.TrimSpace(os.Getenv("DATABASE_PATH")); customPath != "" {
+		return customPath
+	}
+
+	if volumeMount := strings.TrimSpace(os.Getenv("RAILWAY_VOLUME_MOUNT_PATH")); volumeMount != "" {
+		return volumeMount + "/series.db"
+	}
+
+	if volumeMount := strings.TrimSpace(os.Getenv("RAILWAY_VOLUME_MOUNT")); volumeMount != "" {
+		return volumeMount + "/series.db"
+	}
+
 	paths := []string{
 		"./series.db",
 		"../series.db",
@@ -91,4 +104,35 @@ func resolveDatabasePath() string {
 	}
 
 	return "./series.db"
+}
+
+func resolvePort() string {
+	if port := strings.TrimSpace(os.Getenv("PORT")); port != "" {
+		return port
+	}
+
+	return "8080"
+}
+
+func resolveAllowedOrigins() []string {
+	origins := strings.TrimSpace(os.Getenv("ALLOWED_ORIGINS"))
+	if origins == "" {
+		return []string{"*"}
+	}
+
+	parts := strings.Split(origins, ",")
+	allowed := make([]string, 0, len(parts))
+
+	for _, origin := range parts {
+		origin = strings.TrimSpace(origin)
+		if origin != "" {
+			allowed = append(allowed, origin)
+		}
+	}
+
+	if len(allowed) == 0 {
+		return []string{"*"}
+	}
+
+	return allowed
 }

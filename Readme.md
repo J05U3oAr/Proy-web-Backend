@@ -1,177 +1,64 @@
-# 🎬 SeriesTracker — Backend
+# SeriesTracker Backend
 
-API REST construida en **Go** con **SQLite** como base de datos. Expone endpoints JSON para gestionar un tracker personal de series de TV. No genera HTML — solo devuelve datos.
+API REST construida en Go con SQLite para gestionar series.
 
----
+## Correr localmente
 
-## 🔗 Repositorios
+Requisitos:
 
-| Repo | Link |
-|------|------|
-| 🎨 **Frontend** | `(todavía no)` |
-| 🖥️ **Backend (este repo)** | `https://github.com/J05U3oAr/Proy-web-Backend` | 
+- Go 1.21+
+- GCC o MinGW-w64 por `go-sqlite3`
 
----
-
-##  Demo en vivo
-
-En proceso
-
----
-
-## 🚀 Cómo correr localmente
-
-### Requisitos previos
-
-- **Go 1.21+** → [descargar en golang.org/dl](https://golang.org/dl/)
-- **GCC** (requerido por go-sqlite3):
-  - **macOS:** `xcode-select --install`
-  - **Linux (Ubuntu/Debian):** `sudo apt install gcc`
-  - **Windows:** Instalar [MinGW-w64](https://www.mingw-w64.org/) y agregar al PATH
-
-### Pasos
+Pasos:
 
 ```bash
-# 1. Clonar el repositorio
-git clone https://github.com/J05U3oAr/Proy-web-Backend
-cd series-tracker-backend
-
-# 2. Descargar dependencias
-go mod tidy
-
-# 3. Correr el servidor
+cd backend
 go run main.go
 ```
 
-El servidor quedará escuchando en: **`http://localhost:8080`**
+El backend queda disponible en `http://localhost:8080`.
 
-Puedes verificar que está corriendo visitando:
-- `http://localhost:8080/health` → `{"status":"ok","service":"series-tracker-api"}`
-- `http://localhost:8080/series` → `[]` (lista vacía al inicio)
+Endpoints principales:
 
----
+- `GET /health`
+- `GET /series`
+- `POST /series`
+- `GET /series/:id`
+- `PUT /series/:id`
+- `DELETE /series/:id`
 
-## 📡 Endpoints de la API
+## Variables de entorno
 
-### Series
+- `PORT`: puerto HTTP. En local usa `8080` por defecto.
+- `DATABASE_PATH`: ruta absoluta o relativa del archivo SQLite.
+- `ALLOWED_ORIGINS`: lista separada por comas para CORS.
 
-| Método   | Ruta            | Descripción                        | Código éxito |
-|----------|-----------------|------------------------------------|--------------|
-| `GET`    | `/series`       | Listar todas las series            | `200 OK`     |
-| `POST`   | `/series`       | Crear una serie nueva              | `201 Created`|
-| `GET`    | `/series/:id`   | Obtener una serie por ID           | `200 OK`     |
-| `PUT`    | `/series/:id`   | Editar una serie existente         | `200 OK`     |
-| `DELETE` | `/series/:id`   | Eliminar una serie                 | `204 No Content` |
-| `GET`    | `/health`       | Health check del servidor          | `200 OK`     |
+Ejemplo:
 
-### Códigos de error
-
-| Código | Cuándo ocurre                              |
-|--------|--------------------------------------------|
-| `400`  | JSON inválido o campos que no pasan validación |
-| `404`  | No existe una serie con ese ID            |
-| `405`  | Método HTTP no permitido en esa ruta      |
-| `500`  | Error interno del servidor                |
-
-### Ejemplo de request y response
-
-**POST /series**
-```json
-// Request body
-{
-  "title": "Breaking Bad",
-  "genre": "Drama",
-  "status": "completed",
-  "episodes": 62,
-  "description": "Un profesor de química se convierte en fabricante de metanfetamina.",
-  "image_url": "https://m.media-amazon.com/images/M/MV5BMTJiMzgwZTktYzZhZC00YzhhLWEzZDUtMGM2NTE4MzQ4NGFmXkEyXkFqcGdeQWpybA@@._V1_.jpg"
-}
-
-// Response 201 Created
-{
-  "id": 1,
-  "title": "Breaking Bad",
-  "genre": "Drama",
-  "status": "completed",
-  "episodes": 62,
-  "description": "Un profesor de química se convierte en fabricante de metanfetamina.",
-  "image_url": "https://m.media-amazon.com/images/M/MV5BMTJiMzgwZTktYzZhZC00YzhhLWEzZDUtMGM2NTE4MzQ4NGFmXkEyXkFqcGdeQWpybA@@._V1_.jpg",
-  "created_at": "2026-04-16T13:00:00Z",
-  "updated_at": "2026-04-16T13:00:00Z"
-}
+```env
+PORT=8080
+DATABASE_PATH=../series.db
+ALLOWED_ORIGINS=http://localhost:3000
 ```
 
-**Error de validación 400**
-```json
-{
-  "error": "validation_error",
-  "message": "One or more fields are invalid",
-  "fields": {
-    "title": "Title is required and cannot be empty"
-  }
-}
-```
+## Despliegue en Railway
 
----
+Este backend ya quedó preparado para Railway con:
 
-## 📁 Estructura del proyecto
+- [railway.toml](/c:/Users/chaar/OneDrive/Desktop/Archivos%20UVG/Semestre%205/Web/Proyecto1/backend/railway.toml)
+- [Procfile](/c:/Users/chaar/OneDrive/Desktop/Archivos%20UVG/Semestre%205/Web/Proyecto1/backend/Procfile)
 
-```
-backend/
-├── database/
-│   └── database.go
-├── handlers/
-│   └── series.go
-├── models/
-│   └── models.go
-├── go.mod
-├── go.sum
-├── main.go
-└── Readme.md
-```
+Pasos:
 
----
+1. Sube el proyecto a GitHub.
+2. Crea un proyecto en Railway desde ese repositorio.
+3. En el servicio del backend configura `Root Directory = backend`.
+4. Agrega un Volume, por ejemplo montado en `/data`.
+5. Define `DATABASE_PATH=/data/series.db`.
+6. Define `ALLOWED_ORIGINS=https://tu-frontend.vercel.app`.
+7. Despliega y prueba `https://tu-backend.up.railway.app/health`.
 
-## 🌐 CORS
+Nota:
 
-CORS *(Cross-Origin Resource Sharing)* es una política de seguridad del navegador que bloquea peticiones `fetch()` hacia un origen distinto (diferente dominio o puerto) al de la página que las hace; el servidor debe permitirlas explícitamente mediante headers especiales.
-
-En este proyecto configuramos lo siguiente para permitir que el frontend (en otro puerto) pueda consumir la API:
-
-```
-Access-Control-Allow-Origin: *
-Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
-Access-Control-Allow-Headers: Content-Type, Authorization
-```
-
----
-
-## 🏆 Challenges implementados
-
-- ✅ **Códigos HTTP correctos (20 pts)**
-  - `201 Created` al crear una serie exitosamente
-  - `204 No Content` al eliminar (sin body en la respuesta)
-  - `404 Not Found` cuando el ID no existe en la base de datos
-  - `400 Bad Request` cuando el JSON es inválido o falla la validación
-  - `405 Method Not Allowed` cuando se usa un método HTTP no soportado
-  - `500 Internal Server Error` ante fallos inesperados del servidor
-
-- ✅ **Validación server-side con respuestas JSON descriptivas**
-  - Respuesta estructurada con campo `fields` indicando exactamente qué campo falló y por qué
-
----
-
-## 📸 Screenshot
-
-![alt text](./imagenes/página.jpeg)
----
-
-## 💭 Reflexión
-
-Usar **Go** para una API REST resultó ser una experiencia muy directa y satisfactoria. El lenguaje obliga a manejar errores explícitamente en cada paso, lo que hace el código predecible y fácil de depurar — si algo puede fallar, Go te obliga a decidir qué hacer con ese fallo en vez de ignorarlo silenciosamente como en otros lenguajes.
-
-**SQLite** fue una elección práctica para este proyecto: no requiere instalación de servidor, el archivo de base de datos es portátil, y para el volumen de datos de un tracker personal es más que suficiente. Para una aplicación con múltiples usuarios concurrentes o miles de registros, migraría a **PostgreSQL**.
-
-Lo más valioso del ejercicio fue entender la semántica HTTP real: la diferencia entre `200`, `201` y `204` parece trivial al principio, pero refleja contratos importantes — `201` dice "se creó un recurso nuevo", `204` dice "éxito pero no hay nada que devolverte". Esa precisión hace las APIs más predecibles para cualquier cliente que las consuma.
-
-**¿Lo usaría de nuevo?** Sí, definitivamente para APIs pequeñas o medianas. Para proyectos más grandes exploraría frameworks como **Gin** o **Echo** que simplifican el routing.
+- Si no montas un Volume, la base SQLite puede perderse al redeployar.
+- El backend también detecta `RAILWAY_VOLUME_MOUNT` y `RAILWAY_VOLUME_MOUNT_PATH`.
