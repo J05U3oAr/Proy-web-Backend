@@ -2,7 +2,7 @@
 
 API REST construida en **Go** con **SQLite** para gestionar una colección de series. Servidor HTTP independiente que expone únicamente JSON; no genera HTML.
 
-![alt text](image.png)
+![alt text](./imagenes/image.png)
 ---
 
 ## Tecnologías
